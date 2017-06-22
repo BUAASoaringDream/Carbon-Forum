@@ -114,16 +114,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 		$DB->query("INSERT INTO `" . DATABASE_PREFIX . "config` VALUES ('CacheHotTags', '')");
 	}
 
-	//当前版本低于5.8.0，需要进行的升级到5.8.0的升级操作
-	if (VersionCompare('5.8.0', $OldVersion)) {
+	//当前版本低于5.9.0，需要进行的升级到5.9.0的升级操作
+	if (VersionCompare('5.9.0', $OldVersion)) {
+		if (!empty($DB->query("SHOW COLUMNS FROM `" . DATABASE_PREFIX . "users` LIKE 'NewNotification'"))) {
+			$DB->query("ALTER TABLE `" . DATABASE_PREFIX . "users` DROP COLUMN `NewNotification`;");
+
+		}
+		if (!empty($DB->query("SHOW COLUMNS FROM `" . DATABASE_PREFIX . "users` LIKE 'NewMention'"))) {
+			$DB->query("ALTER TABLE `" . DATABASE_PREFIX . "users` DROP COLUMN `NewMention`;");
+
+		}
+		if (!empty($DB->query("SHOW COLUMNS FROM `" . DATABASE_PREFIX . "users` LIKE 'NewReply'"))) {
+			$DB->query("ALTER TABLE `" . DATABASE_PREFIX . "users` DROP COLUMN `NewReply`;");
+
+		}
 		$DB->query("ALTER TABLE " . DATABASE_PREFIX . "users ADD COLUMN `NewMention` INT (10) UNSIGNED NOT NULL DEFAULT 0 AFTER `NumFavTopics`;");
 		$DB->query("ALTER TABLE " . DATABASE_PREFIX . "users ADD COLUMN `NewReply` INT (10) UNSIGNED NOT NULL DEFAULT 0 AFTER `NumFavTopics`;");
 		$DB->query("UPDATE " . DATABASE_PREFIX . "users SET NewReply = NewMessage;");
 		$DB->query("UPDATE " . DATABASE_PREFIX . "users SET NewMessage = 0;");
-	}
-
-	//当前版本低于5.9.0，需要进行的升级到5.9.0的升级操作
-	if (VersionCompare('5.9.0', $OldVersion)) {
 		$DB->query("DROP TABLE IF EXISTS `" . DATABASE_PREFIX . "messages`;");
 		$DB->query("CREATE TABLE `" . DATABASE_PREFIX . "messages` (
 			  `ID` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -135,6 +143,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			  PRIMARY KEY (`ID`),
 			  KEY `Index` (`IsDel`,`InboxID`,`Time`) USING BTREE
 			) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;");
+
+		$DB->query("DROP TABLE IF EXISTS `" . DATABASE_PREFIX . "inbox`;");
 		$DB->query("CREATE TABLE `" . DATABASE_PREFIX . "inbox` (
 			`ID` int(10) NOT NULL AUTO_INCREMENT,
 			`SenderID` int(10) NOT NULL,
@@ -149,6 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 			KEY `SenderID` (`SenderID`,`ReceiverID`),
 			KEY `ReceiverID` (`ReceiverID`,`SenderID`)
 			) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;");
+
 		$DB->query("ALTER TABLE `" . DATABASE_PREFIX . "app` ENGINE=InnoDB;");
 		$DB->query("ALTER TABLE `" . DATABASE_PREFIX . "app_users` ENGINE=InnoDB;");
 		$DB->query("ALTER TABLE `" . DATABASE_PREFIX . "blogs` ENGINE=InnoDB;");
