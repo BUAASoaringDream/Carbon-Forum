@@ -49,4 +49,7 @@ ErrorDocument 404 {{WebSitePath}}/404.php
 	ExpiresByType image/gif A2592000
 	ExpiresByType image/jpeg A2592000
 	ExpiresByType image/x-icon A2592000
+	<IfModule mod_headers.c>
+		Header set Cache-Control "no-cache"
+	</IfModule>
 </IfModule>
